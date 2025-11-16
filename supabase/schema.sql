@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS playlists CASCADE;
 DROP TABLE IF EXISTS global_playback_state CASCADE;
 DROP TABLE IF EXISTS songs CASCADE;
 
--- Create songs table with all metadata fields that the upload API expects
+-- Create songs table for local music files
 CREATE TABLE songs (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -166,18 +166,6 @@ INSERT INTO playlists (id, name, description, is_public, is_auto_generated, auto
     ('00000000-0000-0000-0000-000000000002', 'Recently Played', 'Auto-generated playlist of recently played songs', true, true, 'recent'),
     ('00000000-0000-0000-0000-000000000003', 'All Songs', 'Complete music library', true, true, 'all');
 
--- Insert default global playback state
-INSERT INTO global_playback_state (id, current_song_id, playback_time, is_playing, volume, repeat_mode, shuffle)
-VALUES (
-    '00000000-0000-0000-0000-000000000001',
-    NULL,
-    0,
-    false,
-    0.7,
-    'off',
-    false
-);
-
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
 -- =====================================================
@@ -218,7 +206,7 @@ GRANT SELECT ON songs TO anon;
 GRANT SELECT ON playlists TO anon;
 GRANT SELECT ON playlist_songs TO anon;
 GRANT SELECT ON public_favorites TO anon;
-GRANT SELECT ON global_playback_state TO anon;
+GRANT ALL ON global_playback_state TO anon; -- Allow anon to update playback state
 GRANT SELECT ON global_playback_queue TO anon;
 
 -- Grant permissions for authenticated users (if any)
@@ -245,11 +233,8 @@ GRANT ALL ON global_playback_queue TO service_role;
 INSERT INTO storage.buckets (id, name, public) VALUES ('music-files', 'music-files', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Set up storage policies for public access
+-- Set up storage policies for public access (read-only for existing files)
 CREATE POLICY "Public read access" ON storage.objects FOR SELECT USING (bucket_id = 'music-files');
-CREATE POLICY "Public upload access" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'music-files');
-CREATE POLICY "Public update access" ON storage.objects FOR UPDATE USING (bucket_id = 'music-files');
-CREATE POLICY "Public delete access" ON storage.objects FOR DELETE USING (bucket_id = 'music-files');
 
 -- =====================================================
 -- COMPLETION MESSAGE
@@ -821,3 +806,44 @@ GRANT ALL ON api_play_tracking TO anon, authenticated, service_role;
 GRANT ALL ON api_trending_songs TO anon, authenticated, service_role;
 
 SELECT 'API songs tables created successfully!' as message;
+
+-- Create API usage tracking table
+CREATE TABLE IF NOT EXISTS api_usage (
+  id SERIAL PRIMARY KEY,
+  api_key_hash VARCHAR(64) NOT NULL, -- Hash of the API key for security
+  host VARCHAR(255) NOT NULL,
+  endpoint VARCHAR(500) NOT NULL,
+  method VARCHAR(10) NOT NULL,
+  requests_used INTEGER DEFAULT 0,
+  max_requests INTEGER DEFAULT 100,
+  is_active BOOLEAN DEFAULT true,
+  key_index INTEGER NOT NULL,
+  endpoint_index INTEGER NOT NULL,
+  last_used_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create index for faster lookups
+CREATE INDEX IF NOT EXISTS idx_api_usage_key_hash ON api_usage(api_key_hash);
+CREATE INDEX IF NOT EXISTS idx_api_usage_active ON api_usage(is_active);
+CREATE INDEX IF NOT EXISTS idx_api_usage_requests ON api_usage(requests_used, max_requests);
+
+-- Create function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create trigger to automatically update updated_at
+CREATE TRIGGER update_api_usage_updated_at 
+    BEFORE UPDATE ON api_usage 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert initial API configurations (will be populated by the application)
+-- This is just a template, actual data will be inserted by the API manager
+

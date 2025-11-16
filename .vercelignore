@@ -1,5 +1,20 @@
-.env.local
-node_modules
-.next
-.git
-cli-tool/upload.js
+# Ignore desktop tools directory
+tools/
+
+# Ignore Python files
+*.py
+*.pyc
+__pycache__/
+
+# Ignore build artifacts
+*.deb
+*.exe
+*.dmg
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore temporary files
+*.tmp
+*.temp

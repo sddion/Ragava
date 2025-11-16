@@ -27,4 +27,36 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-package-lock.json
+
+# Log files
+logs/
+*.log
+
+# Tools directory (contains sensitive API keys and local files)
+/tools/.env
+/tools/.ragava_settings.json
+/tools/__pycache__/
+/tools/*.pyc
+/tools/*.pyo
+/tools/*.pyd
+/tools/.Python
+/tools/build/
+/tools/develop-eggs/
+/tools/dist/
+/tools/downloads/
+/tools/eggs/
+/tools/.eggs/
+/tools/lib/
+/tools/lib64/
+/tools/parts/
+/tools/sdist/
+/tools/var/
+/tools/wheels/
+/tools/pip-wheel-metadata/
+/tools/share/python-wheels/
+/tools/*.egg-info/
+/tools/.installed.cfg
+/tools/*.egg
+/tools/MANIFEST
+/tools/packaging/dist/
+/tools/packaging/build/

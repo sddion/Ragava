@@ -1,0 +1,53 @@
+# GitLab CI/CD Pipeline for YouTube MP3 Conversion Service
+# This runs alongside Vercel deployment (Vercel handles the main app deployment)
+image: node:18-alpine
+
+# Install system dependencies for YouTube conversion
+before_script:
+  - apk add --no-cache ffmpeg python3 py3-pip curl wget
+  - python3 -m venv /tmp/venv
+  - source /tmp/venv/bin/activate
+  - pip install yt-dlp
+  - npm ci
+
+# Variables for YouTube conversion
+variables:
+  YOUTUBE_CONVERSION_ENABLED: "true"
+  FFMPEG_PATH: "/usr/bin/ffmpeg"
+  YT_DLP_PATH: "/tmp/venv/bin/yt-dlp"
+
+# Define stages
+stages:
+  - test
+  - conversion-service
+
+# Test stage (runs on every commit)
+test:
+  stage: test
+  script:
+    - 'echo "Running tests..."'
+    - npm run test
+    - npm run lint
+    - npm run type-check
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_MERGE_REQUEST_ID
+
+# YouTube conversion service (runs automatically on main branch)
+youtube-conversion:
+  stage: conversion-service
+  script:
+    - 'echo "YouTube MP3 Conversion Service Starting..."'
+    - 'echo "FFmpeg version: $(ffmpeg -version | head -n1)"'
+    - source /tmp/venv/bin/activate
+    - 'echo "yt-dlp version: $(yt-dlp --version)"'
+    - 'echo "Node version: $(node --version)"'
+    - 'echo "Conversion service is ready for API calls"'
+    - 'echo "Service will be available at: https://ragava.vercel.app/api/youtube-convert"'
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: on_success
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+      allow_failure: true

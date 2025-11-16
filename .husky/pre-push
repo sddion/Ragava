@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# Colors for better output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to show loading spinner
+show_spinner() {
+    local pid=$1
+    local delay=0.1
+    local spinstr='|/-\'
+    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+        local temp=${spinstr#?}
+        printf " [%c]  " "$spinstr"
+        local spinstr=$temp${spinstr%"$temp"}
+        sleep $delay
+        printf "\b\b\b\b\b\b"
+    done
+    printf "    \b\b\b\b"
+}
+
+echo -e "${BLUE}🔍 Running pre-push checks...${NC}"
+
+# Run tests with spinner
+echo -e "${YELLOW}📋 Running tests...${NC}"
+npm run test &
+TEST_PID=$!
+show_spinner $TEST_PID
+wait $TEST_PID
+TEST_EXIT_CODE=$?
+
+if [ $TEST_EXIT_CODE -ne 0 ]; then
+    echo -e "${RED}❌ Tests failed!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Tests passed${NC}"
+
+# Run linting with spinner
+echo -e "${YELLOW}🔧 Running linting...${NC}"
+npm run lint &
+LINT_PID=$!
+show_spinner $LINT_PID
+wait $LINT_PID
+LINT_EXIT_CODE=$?
+
+if [ $LINT_EXIT_CODE -ne 0 ]; then
+    echo -e "${RED}❌ Linting failed!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Linting passed${NC}"
+
+# Run type check with spinner
+echo -e "${YELLOW}🔍 Running type check...${NC}"
+npm run type-check &
+TYPE_PID=$!
+show_spinner $TYPE_PID
+wait $TYPE_PID
+TYPE_EXIT_CODE=$?
+
+if [ $TYPE_EXIT_CODE -ne 0 ]; then
+    echo -e "${RED}❌ Type check failed!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✅ Type check passed${NC}"
+
+echo -e "${GREEN}🎉 All checks passed! Ready to push.${NC}"

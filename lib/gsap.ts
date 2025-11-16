@@ -117,7 +117,6 @@ export const createTimeline = (options?: gsap.TimelineVars) => {
   return gsap.timeline(options)
 }
 
-// Utility to check if GSAP is available
 export const isGSAPAvailable = (): boolean => {
   return typeof gsap !== 'undefined'
 }

@@ -1,79 +1,132 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
-
-export async function GET() {
-  try {
-    const supabase = createClient()
-    const { data: apiSongs, error } = await supabase
-      .from('api_songs')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error('Error fetching API songs:', error)
-      return NextResponse.json({ error: 'Failed to fetch API songs' }, { status: 500 })
-    }
-    
-    return NextResponse.json({ songs: apiSongs })
-  } catch (error) {
-    console.error('Error in api-songs API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }
-}
+import { NextRequest, NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase-server';
 
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json();
     const {
       external_id,
       title,
       artist,
       album,
-      genre,
-      year,
       duration,
       stream_url,
       cover_url,
-      preview_url,
       source = 'api',
-      language,
-      release_date
-    } = await request.json()
+    } = body;
 
     if (!external_id || !title || !artist || !stream_url) {
-      return NextResponse.json({ 
-        error: 'Missing required fields: external_id, title, artist, stream_url' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Missing required fields: external_id, title, artist, stream_url',
+        },
+        { status: 400 }
+      );
     }
 
-    const supabase = createClient()
-    const { data: songId, error } = await supabase.rpc('get_or_create_api_song', {
-      p_external_id: external_id,
-      p_title: title,
-      p_artist: artist,
-      p_album: album || null,
-      p_genre: genre || null,
-      p_year: year || null,
-      p_duration: duration || 0,
-      p_stream_url: stream_url,
-      p_cover_url: cover_url || null,
-      p_preview_url: preview_url || null,
-      p_source: source,
-      p_language: language || null,
-      p_release_date: release_date || null
-    })
+    const supabase = await createServerSupabaseClient();
+
+    const { data: existingSong } = await supabase
+      .from('api_songs')
+      .select('id, title, artist')
+      .eq('external_id', external_id)
+      .single();
+
+    if (existingSong) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Song already exists in database',
+          existingSong,
+        },
+        { status: 409 }
+      );
+    }
+
+    // Insert new song
+    const { data: newSong, error } = await supabase
+      .from('api_songs')
+      .insert({
+        external_id,
+        title,
+        artist,
+        album: album || null,
+        duration: duration || 0,
+        stream_url,
+        cover_url: cover_url || null,
+        source,
+      })
+      .select()
+      .single();
 
     if (error) {
-      console.error('Error creating API song:', error)
-      return NextResponse.json({ error: 'Failed to create API song' }, { status: 500 })
+      console.error('Database insert error:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to save song to database',
+        },
+        { status: 500 }
+      );
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      songId,
-      message: 'API song created successfully' 
-    })
+    return NextResponse.json({
+      success: true,
+      song: newSong,
+      message: 'Song saved to database successfully',
+    });
   } catch (error) {
-    console.error('Error in api-songs POST API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('API songs save error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const limit = parseInt(searchParams.get('limit') || '1000'); // Increased limit to show more results
+    const offset = parseInt(searchParams.get('offset') || '0');
+
+    const supabase = await createServerSupabaseClient();
+
+    const { data: songs, error } = await supabase
+      .from('api_songs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      console.error('Database query error:', error);
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to fetch songs',
+        },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      songs: songs || [],
+      count: songs?.length || 0,
+    });
+  } catch (error) {
+    console.error('API songs fetch error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }

@@ -144,43 +144,43 @@
     .music-player {
       padding: 0.75rem 1rem;
     }
-    
+
     .music-player .flex {
       gap: 0.5rem;
     }
-    
+
     .music-player .flex-shrink-0 img {
       width: 2.5rem;
       height: 2.5rem;
     }
-    
+
     .music-player .flex-1 h3 {
       font-size: 0.75rem;
     }
-    
+
     .music-player .flex-1 p {
       font-size: 0.625rem;
     }
-    
+
     .music-player .flex.items-center.space-x-1 button {
       padding: 0.25rem;
     }
-    
+
     .music-player .flex.items-center.space-x-1 button svg {
       width: 0.75rem;
       height: 0.75rem;
     }
-    
+
     .music-player .flex.items-center.space-x-1 button.play-pause-btn {
       padding: 0.375rem;
     }
-    
+
     .music-player .flex.items-center.space-x-1 button.play-pause-btn svg {
       width: 0.875rem;
       height: 0.875rem;
     }
-    
-    .music-player .flex.items-center.space-x-2 input[type="range"] {
+
+    .music-player .flex.items-center.space-x-2 input[type='range'] {
       width: 2rem;
     }
   }
@@ -204,7 +204,6 @@
     }
   }
 
-
   .progress-bar {
     height: 100%;
     background-color: var(--primary);
@@ -214,7 +213,7 @@
   }
 
   .progress-bar::after {
-    content: "";
+    content: '';
     position: absolute;
     right: 0;
     top: 50%;
@@ -234,7 +233,6 @@
     }
   }
 
-
   .controls {
     display: flex;
     align-items: center;
@@ -248,13 +246,13 @@
       margin-bottom: 1.5rem;
     }
   }
-  
+
   @media (min-width: 640px) {
     .controls {
       gap: 1rem;
     }
   }
-  
+
   @media (min-width: 768px) {
     .controls {
       gap: 1.5rem;
@@ -285,7 +283,9 @@
     background-color: var(--accent);
     color: var(--accent-foreground);
     border-color: var(--accent);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow:
+      0 10px 15px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   .control-btn:active {
@@ -310,14 +310,18 @@
   .control-btn.primary:hover {
     background-color: var(--primary);
     opacity: 0.9;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
 
   .control-btn.active {
     background-color: var(--accent);
     color: var(--accent-foreground);
     border-color: var(--accent);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
   }
 
   .range-slider {
@@ -412,7 +416,7 @@
 
   .search-input:focus {
     outline: none;
-    ring: 2px solid var(--ring);
+    kerning: 2px solid var(--ring);
     border-color: transparent;
   }
 
@@ -595,13 +599,13 @@
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   @media (min-width: 640px) {
     .spacing-responsive {
       gap: 1.5rem;
     }
   }
-  
+
   @media (min-width: 1024px) {
     .spacing-responsive {
       gap: 2rem;
@@ -672,7 +676,9 @@
 
   .focus-ring:focus {
     outline: none;
-    box-shadow: 0 0 0 2px var(--ring), 0 0 0 4px var(--background);
+    box-shadow:
+      0 0 0 2px var(--ring),
+      0 0 0 4px var(--background);
   }
 
   .focus-ring-inset {
@@ -684,4 +690,3 @@
     box-shadow: inset 0 0 0 2px var(--ring);
   }
 }
-

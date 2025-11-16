@@ -16,7 +16,6 @@ export interface Song {
   duration?: number
   file_url: string
   cover_url?: string
-  uploaded_by?: string
   created_at: string
   updated_at: string
 }

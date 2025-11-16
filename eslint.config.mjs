@@ -9,25 +9,36 @@ const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
-  {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      "scripts/**",
-    ],
+const eslintConfig = [{
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts"]
+}, ...compat.extends("next/core-web-vitals", "next/typescript", "prettier"), {
+  ignores: [
+    "node_modules/**",
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+    "scripts/**",
+    "logs/**",
+  ],
+}, {
+  rules: {
+    // TypeScript rules
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-var-requires": "error",
+    
+    // React rules
+    "react-hooks/exhaustive-deps": "warn",
+    "react/no-unescaped-entities": "error",
+    "react/jsx-key": "error",
+    
+    // General rule
+    "no-unused-vars": "off",
+    "prefer-const": "error",
+    "no-var": "error",
+    
   },
-  {
-    rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": "warn",
-      "react-hooks/exhaustive-deps": "warn",
-    },
-  },
-];
+}];
 
 export default eslintConfig;
