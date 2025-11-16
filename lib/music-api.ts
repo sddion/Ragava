@@ -156,9 +156,7 @@ interface SaavnSongDetailsResponse {
 class MusicAPI {
   private baseUrl = 'https://saavn.dev/api'
   private fallbackApis = [
-    'https://jiosaavn-api.vercel.app',
-    'https://jiosaavn-api.herokuapp.com',
-    'https://jiosaavn-api.cyclic.app',
+    'https://jiosaavn-api-dun-mu.vercel.app',
     'https://jiosaavn-api.onrender.com',
     'https://saavn.dev/api'
   ]
